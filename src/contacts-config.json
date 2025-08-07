@@ -1,0 +1,125 @@
+{
+  "contacts": {
+    "marion": {
+      "enabled": true,
+      "phoneNumber": "33685627672@c.us",
+      "name": "Marion",
+      "relationship": "girlfriend",
+      "profilePath": "profiles/marion/",
+      "features": {
+        "autoReply": true,
+        "autoCorrect": true,
+        "useGPT": true,
+        "sendDiscordNotifications": true,
+        "responseDelay": {
+          "min": 1500,
+          "max": 10000,
+          "phases": true
+        }
+      },
+      "customPrompt": "marion_prompt.txt",
+      "analysisData": "marion_analysis.json",
+      "memory": "marion_memory.json",
+      "keywords": [
+        "urgent",
+        "important",
+        "rdv",
+        "anniversaire"
+      ],
+      "style": {
+        "useEmojis": true,
+        "messageLength": "short",
+        "typos": true,
+        "intimacyLevel": 8
+      }
+    },
+    "example_friend": {
+      "enabled": true,
+      "phoneNumber": "33768102706@c.us",
+      "name": "Siméon",
+      "relationship": "friend",
+      "profilePath": "profiles/jean/",
+      "features": {
+        "autoReply": true,
+        "autoCorrect": true,
+        "useGPT": true,
+        "sendDiscordNotifications": false,
+        "responseDelay": {
+          "min": 5000,
+          "max": 30000,
+          "phases": false
+        }
+      },
+      "customPrompt": "example_friend_prompt.txt",
+      "analysisData": null,
+      "memory": "jean_memory.json",
+      "keywords": [],
+      "style": {
+        "useEmojis": false,
+        "messageLength": "medium",
+        "typos": false,
+        "intimacyLevel": 6
+      }
+    },
+    "example_colleague": {
+      "enabled": false,
+      "phoneNumber": "+33ZZZZZZZZZ",
+      "name": "Vincent",
+      "relationship": "colleague",
+      "profilePath": "profiles/vincent/",
+      "features": {
+        "autoReply": false,
+        "autoCorrect": false,
+        "useGPT": false,
+        "sendDiscordNotifications": true,
+        "responseDelay": {
+          "min": 10000,
+          "max": 60000,
+          "phases": false
+        }
+      },
+      "customPrompt": null,
+      "analysisData": null,
+      "memory": "vincent_memory.json",
+      "keywords": [
+        "meeting",
+        "projet",
+        "deadline"
+      ],
+      "style": {
+        "useEmojis": false,
+        "messageLength": "professional",
+        "typos": false,
+        "intimacyLevel": 6
+      }
+    }
+  },
+  "globalSettings": {
+    "defaultEnabled": false,
+    "masterSwitch": true,
+    "defaultFeatures": {
+      "autoReply": false,
+      "autoCorrect": true,
+      "useGPT": false,
+      "sendDiscordNotifications": false
+    },
+    "emergencyKeywords": [
+      "urgent",
+      "SOS",
+      "911",
+      "aide",
+      "help"
+    ],
+    "botCommands": {
+      "prefix": "bot",
+      "commands": [
+        "stop",
+        "start",
+        "status",
+        "context",
+        "help",
+        "paf"
+      ]
+    }
+  }
+}

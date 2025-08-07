@@ -23,9 +23,6 @@ Thumbs.db
 .idea/
 
 # Personal data
-memory.json
-contacts.json
-src/contacts-config.json
 src/*_memory.json
 src/*_prompt.txt
 src/*_analysis.json
