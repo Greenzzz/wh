@@ -1064,26 +1064,52 @@
         
         // Service control functions
         async function startService() {
+            const btn = document.getElementById('startServiceBtn');
+            if (btn.disabled) return;
+            
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+            
             try {
                 const response = await fetch('/api/bot/start', { method: 'POST' });
                 const data = await response.json();
                 if (data.success) {
                     setTimeout(loadStatus, 1000);
+                } else {
+                    // Re-enable button if failed
+                    btn.disabled = false;
+                    btn.textContent = 'Start Service';
+                    alert(data.message || 'Failed to start service');
                 }
             } catch (error) {
                 console.error('Error starting service:', error);
+                btn.disabled = false;
+                btn.textContent = 'Start Service';
             }
         }
         
         async function stopService() {
+            const btn = document.getElementById('stopServiceBtn');
+            if (btn.disabled) return;
+            
+            btn.disabled = true;
+            btn.textContent = 'Stopping...';
+            
             try {
                 const response = await fetch('/api/bot/stop', { method: 'POST' });
                 const data = await response.json();
                 if (data.success) {
                     setTimeout(loadStatus, 1000);
+                } else {
+                    // Re-enable button if failed
+                    btn.disabled = false;
+                    btn.textContent = 'Stop Service';
+                    alert(data.message || 'Failed to stop service');
                 }
             } catch (error) {
                 console.error('Error stopping service:', error);
+                btn.disabled = false;
+                btn.textContent = 'Stop Service';
             }
         }
         
@@ -1334,11 +1360,15 @@
                 serviceStatus.className = 'status-badge active';
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
+                stopBtn.disabled = false;
+                stopBtn.textContent = 'Stop Service';
             } else {
                 serviceStatus.innerHTML = '<span class="dot inactive"></span><span>Offline</span>';
                 serviceStatus.className = 'status-badge inactive';
                 startBtn.style.display = 'block';
                 stopBtn.style.display = 'none';
+                startBtn.disabled = false;
+                startBtn.textContent = 'Start Service';
             }
             
             updateAssistantStatus();
