@@ -258,7 +258,6 @@ class WhatsAppBot {
             const response = await this.callChatGPTWithTools(question, chatHistory);
             
             // Envoyer la réponse (sans reply/mention)
-            const chat = await msg.getChat();
             await chat.sendMessage('🤖 ' + response);
             
             // Note: Plus besoin de marquer les réponses paf car on n'a plus replyMsg
@@ -267,8 +266,7 @@ class WhatsAppBot {
             
         } catch (error) {
             console.error('[PAF] Erreur:', error);
-            const chat = await msg.getChat();
-            await chat.sendMessage('❌ Erreur ChatGPT');
+            await msg.getChat().then(chat => chat.sendMessage('❌ Erreur ChatGPT'));
         }
     }
 
