@@ -257,19 +257,18 @@ class WhatsAppBot {
             // Appeler ChatGPT avec les outils disponibles
             const response = await this.callChatGPTWithTools(question, chatHistory);
             
-            // Envoyer la réponse
-            const replyMsg = await msg.reply('🤖 ' + response);
+            // Envoyer la réponse (sans reply/mention)
+            const chat = await msg.getChat();
+            await chat.sendMessage('🤖 ' + response);
             
-            // Marquer la réponse pour éviter l'auto-correction
-            if (replyMsg?.id) {
-                this.pafResponses.add(replyMsg.id.id || replyMsg.id._serialized);
-            }
+            // Note: Plus besoin de marquer les réponses paf car on n'a plus replyMsg
             
             console.log('[PAF] Réponse envoyée');
             
         } catch (error) {
             console.error('[PAF] Erreur:', error);
-            await msg.reply('❌ Erreur ChatGPT');
+            const chat = await msg.getChat();
+            await chat.sendMessage('❌ Erreur ChatGPT');
         }
     }
 
@@ -359,20 +358,27 @@ class WhatsAppBot {
 
             const response = completion.choices[0].message.content;
             
-            // Délai réaliste avant de répondre
-            const delay = this.calculateDelay();
-            console.log(`[AUTO-REPLY] Délai de ${delay/1000}s avant réponse`);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            // Délais réalistes avec phases de conversation
+            const delays = this.calculateDelay(response.length, chatId);
             
-            // Arrêter l'indicateur de frappe et envoyer
+            // Phase 1: Temps de réflexion (pas d'indicateur)
+            console.log(`[AUTO-REPLY] Attente: ${delays.thinkingDelay/1000}s`);
+            await new Promise(resolve => setTimeout(resolve, delays.thinkingDelay));
+            
+            // Phase 2: Frappe du message
+            console.log(`[AUTO-REPLY] Frappe: ${delays.typingDelay/1000}s`);
+            await chat.sendStateTyping();
+            await new Promise(resolve => setTimeout(resolve, delays.typingDelay));
+            
+            // Phase 3: Envoi du message (sans reply/mention)
             await chat.clearState();
-            await msg.reply(response);
+            await chat.sendMessage(response);
             
             console.log(`[AUTO-REPLY] Réponse envoyée: "${response}"`);
             
         } catch (error) {
             console.error('[AUTO-REPLY] Erreur:', error);
-            await msg.reply("Désolé, mon téléphone bug un peu là");
+            await chat.sendMessage("Désolé, mon téléphone bug un peu là");
         }
     }
 
@@ -674,9 +680,84 @@ ${context.temporal ? `Contexte actuel: ${context.temporal}` : ''}`;
         return 'neutral';
     }
 
-    calculateDelay() {
-        // Délai aléatoire réaliste (2-10 secondes)
-        return Math.floor(Math.random() * 8000) + 2000;
+    calculateDelay(messageLength = 50, chatId) {
+        // Système de phases de conversation (rapide -> occupé -> rapide)
+        
+        // Initialiser ou récupérer l'état de conversation
+        if (!this.conversationStates) {
+            this.conversationStates = new Map();
+        }
+        
+        const now = Date.now();
+        let state = this.conversationStates.get(chatId) || {
+            phase: 'active',
+            messageCount: 0,
+            lastMessageTime: now,
+            phaseStartTime: now
+        };
+        
+        // Calculer le temps depuis le dernier message
+        const timeSinceLastMessage = now - state.lastMessageTime;
+        
+        // Si plus de 10 minutes sans message, reset à phase active
+        if (timeSinceLastMessage > 10 * 60 * 1000) {
+            state = {
+                phase: 'active',
+                messageCount: 0,
+                lastMessageTime: now,
+                phaseStartTime: now
+            };
+        }
+        
+        let baseDelay;
+        let typingTime;
+        
+        // Gestion des phases
+        if (state.phase === 'active') {
+            // Phase active : réponses rapides (3-5 messages)
+            baseDelay = Math.floor(Math.random() * 5000) + 3000; // 3-8 secondes
+            typingTime = Math.floor(Math.random() * 2000) + 1000; // 1-3 secondes
+            
+            state.messageCount++;
+            
+            // Après 3-5 messages, passer en phase occupée
+            if (state.messageCount >= Math.floor(Math.random() * 3) + 3) {
+                state.phase = 'busy';
+                state.messageCount = 0;
+                state.phaseStartTime = now;
+                console.log(`[DELAY] Passage en phase occupée pour ${chatId}`);
+            }
+            
+        } else if (state.phase === 'busy') {
+            // Phase occupée : réponses très lentes (1-5 minutes)
+            baseDelay = Math.floor(Math.random() * 240000) + 60000; // 1-5 minutes
+            typingTime = Math.floor(Math.random() * 3000) + 2000; // 2-5 secondes
+            
+            state.messageCount++;
+            
+            // Après 1-2 messages lents, repasser en phase active
+            if (state.messageCount >= Math.floor(Math.random() * 2) + 1) {
+                state.phase = 'active';
+                state.messageCount = 0;
+                state.phaseStartTime = now;
+                console.log(`[DELAY] Retour en phase active pour ${chatId}`);
+            }
+        }
+        
+        // Mettre à jour l'état
+        state.lastMessageTime = now;
+        this.conversationStates.set(chatId, state);
+        
+        // Ajouter un peu de variabilité pour les longs messages
+        const lengthDelay = Math.min(messageLength * 30, 3000); // Max 3 secondes pour les longs messages
+        
+        console.log(`[DELAY] Phase: ${state.phase}, Message #${state.messageCount}`);
+        
+        return {
+            thinkingDelay: baseDelay,
+            typingDelay: typingTime,
+            totalDelay: baseDelay + typingTime + lengthDelay
+        };
     }
 
     // ============================================
