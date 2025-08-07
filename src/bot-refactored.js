@@ -376,7 +376,12 @@ class WhatsAppBot {
             
         } catch (error) {
             console.error('[AUTO-REPLY] Erreur:', error);
-            await chat.sendMessage("Désolé, mon téléphone bug un peu là");
+            try {
+                const errorChat = await msg.getChat();
+                await errorChat.sendMessage("Désolé, mon téléphone bug un peu là");
+            } catch (e) {
+                console.error('[AUTO-REPLY] Impossible d\'envoyer le message d\'erreur:', e);
+            }
         }
     }
 
